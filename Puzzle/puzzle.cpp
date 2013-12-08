@@ -11,7 +11,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished, int levelnumber);
 int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & levelnumber);
 
-sf::Music bgm;
+sf::Music bgm; // background music
 sf::Font blockFont;
 sf::Font levelFont;
 
