@@ -11,7 +11,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished, int levelnumber);
 int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & levelnumber);
 
-sf::Music bgm; // background music
+sf::Music bgm;
 sf::Font blockFont;
 sf::Font levelFont;
 
@@ -146,7 +146,7 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 			loop_colorchange = 0;
 		}
 
-		if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		if(sf::Mouse::isButtonPressed(sf::Mouse::Left))			//Checks if mouse left button is clicked and see where it is
 		{
 			levelnumber = 0;
 			bool isMouseOnTileX = false;
@@ -216,7 +216,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 	sf::Text displaylevel;
 	displaylevel.setFont(levelFont);
 
-	//sf::Music bgm;
+
 	bgm.setLoop(true);
 	bgm.openFromFile("Resources/musics/Music A1.ogg");
 	bgm.play();
@@ -268,7 +268,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
         {
             if (event.type == sf::Event::Closed)
                 Window.close();
-			if (event.type == sf::Event::KeyPressed && movement==STILL)
+			if (event.type == sf::Event::KeyPressed && movement==STILL)		// Key responses only work when there is no animation
 			{
 				switch (event.key.code)
 				{
@@ -309,7 +309,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 						}
 						break;
 
-					case sf::Keyboard::Add:
+					case sf::Keyboard::Add:		// Increases levelnumber by 1 and resets the stage
 						levelnumber++;
 						filename[levelnumber].str("");
 						filename[levelnumber].clear();
@@ -334,7 +334,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 						in_maptile[levelnumber].close();
 						break;
 
-					case sf::Keyboard::Subtract:
+					case sf::Keyboard::Subtract:		// Decreases levelnumber by 1 and resets the stage
 						if (levelnumber !=1)
 						{
 							levelnumber--;
@@ -362,7 +362,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 						}
 						break;
 
-					case sf::Keyboard::Space:
+					case sf::Keyboard::Space:		// swap, slide_data, slide_animation, fix. then if there are more blocks to cancel, it loops slide_data, slide_animation, fix.
 						if(maptile2d[cursorposition.y][cursorposition.x] == maptile2d[cursorposition.y +1][cursorposition.x])
 							std::cout<< "Same box\n";
 						else
@@ -500,7 +500,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 
 		
 
-		// Check if all tiles are empty.
+		// Check if all tiles are empty and if there are no more blocks, it proceeds to next level.
 		finished = true;
 		for (int i = 0; i < 8; i++)
 		{
@@ -511,7 +511,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 			}
 		}
 
-		// is it finished? or failed?
+		// Compares movecount with possiblemoves. And checks if user has completed the level or failed.
 		if (finished || movecount >=possiblemoves)
 		{
 			Window.clear();
@@ -558,6 +558,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 			}
 		}
 
+		// Moves the selectingbox to next position that is set when arrow keys are pressed or when the stage is completed.
 		selectingbox.move( 0.4 * (futureboxPosition.x - selectingbox.getPosition().x), 0.4 * (futureboxPosition.y - selectingbox.getPosition().y) );
 
 		if ( abs(futureboxPosition.x - selectingbox.getPosition().x) < 2 && abs(futureboxPosition.y - selectingbox.getPosition().y) < 2)
@@ -567,6 +568,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 			movement = STILL;
 		}
 
+		// loop for changing background color. randomly changes rgb by +-1 every (int i) frames
 		loop_colorchange++;
 		if (loop_colorchange == 4)
 		{
@@ -578,6 +580,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 			loop_colorchange = 0;
 		}
 
+		//	Displays level on the bottom of the screen
 		std::string levelstring = std::to_string(levelnumber);
 		displaylevel.setColor(sf::Color::White);
 		displaylevel.setString(levelstring);
@@ -585,6 +588,8 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 		displaylevel.setScale(0.5,0.5);
 		displaylevel.setPosition( (1280 - displaylevel.getGlobalBounds().width) / 2, (720 - displaylevel.getGlobalBounds().height) / 2 + 295);
 
+
+		// Draws objects on Window and displays them
 		Window.clear();
 		Window.draw(backgroundVertex);
 		Window.draw(backgroundSprite);
@@ -600,10 +605,9 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 
 
 
-
-
-int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished, int levelnumber)
+int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished, int levelnumber)  // This function is called when stage is completed or failed
 {
+	// Loads failed soundeffect
 	sf::SoundBuffer youdiedbuffer;
 	youdiedbuffer.loadFromFile("Resources/sounds/youdied.ogg");
 	sf::Sound youdied;
@@ -629,15 +633,6 @@ int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished,
 	message.setScale(0.5,0.5);
 	message.setPosition( (1280 - message.getGlobalBounds().width) /2 , (720 - message.getGlobalBounds().height)/2 - message.getGlobalBounds().height /2);
 
-	sf::RectangleShape pausemenu;
-	pausemenu.setOutlineThickness (5);
-	pausemenu.setSize(sf::Vector2f(400,300));
-	pausemenu.setFillColor( sf::Color(0,200,128,0));
-	pausemenu.setOutlineColor (sf::Color(0,170,90,0));
-	pausemenu.setPosition( (1280 - pausemenu.getSize().x) / 2, (720 - pausemenu.getSize().y) / 2);
-
-	float opacity = 0;
-
 	while(1)
 	{
 		sf::Event event;
@@ -647,28 +642,23 @@ int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished,
 			{
 				switch (event.key.code)
 				{
+					case sf::Keyboard::Escape:
+						break;
 					case sf::Keyboard::Right:
 						break;
 					case sf::Keyboard::Left:
 						break;
-					case sf::Keyboard::Space:
-						if (bgm.getStatus() == 0)
+					case sf::Keyboard::Space:	// Ends the pause screen and goes back to the game
+						if (bgm.getStatus() == sf::Music::Status::Stopped)
 							bgm.play();
 						return 0;
 						break;
 				}
 			}
 		}
-		if (opacity !=255)
-		{
-			opacity += 17;
-			pausemenu.setFillColor( sf::Color(0,200,128,opacity));
-			pausemenu.setOutlineColor (sf::Color(0,170,90,opacity));
-		}
 
 		Window.clear();
 		Window.draw(background);
-		//Window.draw(pausemenu);
 		Window.draw(message);
 		Window.display();
 	}
