@@ -4,6 +4,7 @@ Thumbs.db
 *.pdb
 *.user
 *.aps
+*.7z
 *.pch
 *.vspscc
 *_i.c
