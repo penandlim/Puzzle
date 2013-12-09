@@ -13,7 +13,7 @@
     <ClInclude Include="menu.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header.h">
+    <ClInclude Include="mapeditor.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -22,6 +22,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="menu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mapeditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

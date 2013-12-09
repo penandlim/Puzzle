@@ -1,5 +1,6 @@
 #include "tilemap.h"
 #include "menu.h"
+#include "mapeditor.h"
 #include<SFML/Graphics.hpp>
 #include<SFML/Audio.hpp>
 #include<iostream>
@@ -45,6 +46,7 @@ int main()
 
 			break;
 		case 2:
+			mapeditor(Window,backgroundVertex);
 
 			break;
 		case 3:
