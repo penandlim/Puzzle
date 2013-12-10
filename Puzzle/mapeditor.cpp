@@ -7,9 +7,29 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex);
 int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 {
 	enum Direction {STILL, LEFT, RIGHT, UP, DOWN, ANIMATION}; 
+	enum TileColor {BLANK, RED, GREEN, PURPLE, YELLOW, BLUE};
+
 	sf::Vector2f futureboxPosition(43,43);
 	sf::Vector2i cursorposition(0,0);
-	int movement = STILL, movecount = 0;
+	int movement = STILL, movecount = 0, whichTileToPlaceNum = BLANK;
+
+	sf::Texture tileTexture;
+	sf::Sprite tileSprite[8][16], tileToPlaceSprite;
+
+	tileTexture.loadFromFile("Resources/images/tileset.png");
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 16; j++)
+		{
+			tileSprite[i][j].setPosition(40 + j * 75, 40 + i * 75);
+			tileSprite[i][j].setTexture(tileTexture);
+			tileSprite[i][j].setTextureRect(sf::IntRect(0, 0, 50, 50));
+			tileSprite[i][j].setScale(1.5,1.5);
+		}
+	}
+	tileToPlaceSprite.setPosition(60,650);
+	tileToPlaceSprite.setTexture(tileTexture);
+	tileToPlaceSprite.setTextureRect(sf::IntRect(0, 0, 50, 50));
 
 	sf::Texture backgroundTexture;
 	sf::Sprite backgroundSprite;
@@ -73,7 +93,18 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 							cursorposition.y++;
 						}
 						break;
+					case sf::Keyboard::Add:
+						whichTileToPlaceNum++;
+						if (whichTileToPlaceNum > BLUE)
+							whichTileToPlaceNum = BLANK;
+						break;
+					case sf::Keyboard::Subtract:
+						whichTileToPlaceNum--;
+						if (whichTileToPlaceNum < BLANK)
+							whichTileToPlaceNum = BLUE;
+						break;
 				}
+				tileToPlaceSprite.setTextureRect(sf::IntRect(50 * whichTileToPlaceNum,0,50,50));
 			}
 		}
 
@@ -90,8 +121,18 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		}
 
 
+
+		//	Renders Window
 		Window.clear();
 		Window.draw(backgroundSprite);
+		for (int i = 0; i < 8; i++)
+		{
+			for (int j = 0; j < 16; j++)
+			{
+				Window.draw(tileSprite[i][j]);
+			}
+		}
+		Window.draw(tileToPlaceSprite);
 		Window.draw(selectingbox);
 		Window.display();
 	}

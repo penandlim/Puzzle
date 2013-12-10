@@ -58,6 +58,8 @@ int main()
     return 0;
 }
 
+
+
 int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & levelnumber)
 {
 	//	Play non 8bit version when returned to selecting stage from levels
