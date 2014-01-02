@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "puzzle.h"
 
 int colorchange(int color);
 int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & bot, sf::Texture & screenshot);
@@ -43,7 +44,8 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 	}
 	else
 	{
-		intro_piano.play();
+		if(bgmisplaying == false)
+			intro_piano.play();
 		intro_8bit.stop();
 	}
 	applaunch = false;

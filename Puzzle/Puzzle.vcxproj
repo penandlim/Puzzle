@@ -91,6 +91,7 @@
   <ItemGroup>
     <ClInclude Include="mapeditor.h" />
     <ClInclude Include="menu.h" />
+    <ClInclude Include="puzzle.h" />
     <ClInclude Include="tilemap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

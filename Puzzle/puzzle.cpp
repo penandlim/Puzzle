@@ -1,4 +1,5 @@
 #include "tilemap.h"
+#include "puzzle.h"
 #include "menu.h"
 #include "mapeditor.h"
 #include<SFML/Graphics.hpp>
@@ -15,6 +16,8 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 sf::Music bgm;
 sf::Font blockFont;
 sf::Font levelFont;
+
+bool bgmisplaying;
 
 int main()
 {
@@ -41,13 +44,13 @@ int main()
 				intro_piano.stop();
 				level(Window, backgroundVertex, levelnumber);
 			}
+			bgmisplaying = false;
 			break;
 		case 1:
 
 			break;
 		case 2:
 			mapeditor(Window,backgroundVertex);
-
 			break;
 		case 3:
 			closeProgram = true;

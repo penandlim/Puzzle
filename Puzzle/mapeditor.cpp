@@ -1,3 +1,4 @@
+#include "puzzle.h"
 #include "mapeditor.h"
 #include "menu.h"
 
@@ -6,7 +7,9 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex);
 
 int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 {
-	enum Direction {STILL, LEFT, RIGHT, UP, DOWN, ANIMATION}; 
+
+	bgmisplaying = true;
+	enum Direction {STILL, LEFT, RIGHT, UP, DOWN, ANIMATION};
 	enum TileColor {BLANK, RED, GREEN, PURPLE, YELLOW, BLUE};
 
 	sf::Vector2f futureboxPosition(43,43);
@@ -17,17 +20,20 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 	sf::Sprite tileSprite[8][16], tileToPlaceSprite;
 
 	tileTexture.loadFromFile("Resources/images/tileset.png");
+
+	int custom_maptile2d[8][16];
 	for (int i = 0; i < 8; i++)
 	{
 		for (int j = 0; j < 16; j++)
 		{
+			custom_maptile2d[i][j] = 0;
 			tileSprite[i][j].setPosition(40 + j * 75, 40 + i * 75);
 			tileSprite[i][j].setTexture(tileTexture);
 			tileSprite[i][j].setTextureRect(sf::IntRect(0, 0, 50, 50));
 			tileSprite[i][j].setScale(1.5,1.5);
 		}
 	}
-	tileToPlaceSprite.setPosition(60,650);
+	tileToPlaceSprite.setPosition(200,650);
 	tileToPlaceSprite.setTexture(tileTexture);
 	tileToPlaceSprite.setTextureRect(sf::IntRect(0, 0, 50, 50));
 
@@ -103,6 +109,10 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 						if (whichTileToPlaceNum < BLANK)
 							whichTileToPlaceNum = BLUE;
 						break;
+					case sf::Keyboard::Space:
+						custom_maptile2d[cursorposition.y][cursorposition.x] = whichTileToPlaceNum;
+						tileSprite[cursorposition.y][cursorposition.x].setTextureRect(sf::IntRect(whichTileToPlaceNum * 50, 0, 50, 50));
+						break;
 				}
 				tileToPlaceSprite.setTextureRect(sf::IntRect(50 * whichTileToPlaceNum,0,50,50));
 			}
@@ -119,8 +129,6 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		{
 			selectingbox.move( 0.4 * (futureboxPosition.x - selectingbox.getPosition().x), 0.4 * (futureboxPosition.y - selectingbox.getPosition().y) );
 		}
-
-
 
 		//	Renders Window
 		Window.clear();
