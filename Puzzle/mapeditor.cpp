@@ -19,6 +19,13 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 	sf::Texture tileTexture;
 	sf::Sprite tileSprite[8][16], tileToPlaceSprite;
 
+	sf::Font blockfont;
+	blockfont.loadFromFile("Resources/fonts/blocks.otf");
+	sf::Text info;
+	info.setFont(blockfont);
+	info.setString("Tile to place: -              +");
+	info.setPosition(50,655);
+
 	tileTexture.loadFromFile("Resources/images/tileset.png");
 
 	int custom_maptile2d[8][16];
@@ -33,7 +40,7 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 			tileSprite[i][j].setScale(1.5,1.5);
 		}
 	}
-	tileToPlaceSprite.setPosition(200,650);
+	tileToPlaceSprite.setPosition(205,650);
 	tileToPlaceSprite.setTexture(tileTexture);
 	tileToPlaceSprite.setTextureRect(sf::IntRect(0, 0, 50, 50));
 
@@ -45,12 +52,18 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 	backgroundSprite.setPosition(0,0);
 	backgroundSprite.setColor(sf::Color(255,255,255,100));
 
-	sf::RectangleShape selectingbox, pausemenu;
+	sf::RectangleShape selectingbox, tileToPlaceBox;
 	selectingbox.setOutlineThickness(3);
 	selectingbox.setSize(sf::Vector2f(75 - 2 * selectingbox.getOutlineThickness(), 75 -  2 *selectingbox.getOutlineThickness()));
 	selectingbox.setFillColor(sf::Color::Transparent);
 	selectingbox.setOutlineColor(sf::Color::White);
 	selectingbox.setPosition(43,43);
+
+	tileToPlaceBox.setOutlineThickness(3);
+	tileToPlaceBox.setSize(sf::Vector2f(50 - 2 * selectingbox.getOutlineThickness(), 50 -  2 *selectingbox.getOutlineThickness()));
+	tileToPlaceBox.setFillColor(sf::Color::Transparent);
+	tileToPlaceBox.setOutlineColor(sf::Color::White);
+	tileToPlaceBox.setPosition(208,653);
 
 
 	while(Window.isOpen())
@@ -141,7 +154,9 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 			}
 		}
 		Window.draw(tileToPlaceSprite);
+		Window.draw(tileToPlaceBox);
 		Window.draw(selectingbox);
+		Window.draw(info);
 		Window.display();
 	}
 }

@@ -10,6 +10,25 @@ bool applaunch = true;
 
 int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 {
+	/*if (applaunch == true)
+	{
+		while(Window.isOpen())
+		{
+			sf::Event event;
+			while (Window.pollEvent(event))
+			{
+				if (event.type == sf::Event::Closed)
+					Window.close();
+			}
+			Window.display();
+			if(event.type == sf::Event::KeyPressed)
+			{
+				std::this_thread::sleep_for(std::chrono::seconds(3));
+				break;
+			}
+		}
+	}*/
+
 	enum animation{LEFT, RIGHT, STILL};
 	enum mode{SINGLE, MULTI, EDIT, EXIT};
 
@@ -36,6 +55,7 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 
 		intro_8bit.openFromFile("Resources/musics/intro_8bit.ogg");
 		intro_piano.openFromFile("Resources/musics/intro_piano.ogg");
+		intro_piano.setLoop(true);
 		intro_8bit.setVolume(100);
 		intro_8bit.play();
 
@@ -90,7 +110,11 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 
 	int loop_colorchange = 0, loop_cut = 0, loop_colorchange_max = 5, loop_animation = 0, animationState = 99, selection = SINGLE;
 
-	
+	sf::Texture mapeditTexture;
+	mapeditTexture.loadFromFile("Resources/images/mapedit.png");
+	sf::Sprite mapeditSprite;
+	mapeditSprite.setTexture(mapeditTexture);
+	mapeditSprite.setColor(sf::Color(255,255,255,0));
 
 	sf::Font menuFont;
 	menuFont.loadFromFile("Resources/fonts/blocks.otf");
@@ -195,6 +219,18 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 				top[i].position.y +=0.72 * loop_cut;
 			}
 		}
+
+		if (selection == EDIT)			// if map editor is selected
+		{
+			if (mapeditSprite.getColor().a < 255)
+			mapeditSprite.setColor(sf::Color(255,255,255, mapeditSprite.getColor().a + 5));
+		}
+		else
+		{
+			if (mapeditSprite.getColor().a > 0)
+			mapeditSprite.setColor(sf::Color(255,255,255, mapeditSprite.getColor().a - 5));
+		}
+
 		if(intro_8bit.getVolume() > 0)
 		{
 			intro_piano.setVolume( intro_piano.getVolume() + 0.5);
@@ -234,6 +270,7 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		//	Window section.
 		Window.clear();
 		Window.draw(backgroundVertex);
+		Window.draw(mapeditSprite);
 		Window.draw(menuTitle);
 		if(menuTitle.getScale().x >= 1)
 		{

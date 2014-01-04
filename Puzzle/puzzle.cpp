@@ -90,7 +90,7 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 
 			
 			icon_sprite[i][j].setTexture(icons);
-			icon_sprite[i][j].setTextureRect( sf::IntRect(50*i + 50, 0, 50, 50));
+			icon_sprite[i][j].setTextureRect( sf::IntRect(50*i + 51, 0, 48, 50));
 			icon_sprite[i][j].setOrigin(icon_sprite[i][j].getGlobalBounds().width / 2, icon_sprite[i][j].getGlobalBounds().height / 2);
 			icon_sprite[i][j].setPosition(40 + 125 * j + 75/2, 40 + 128*i + 75/2);
 			icon_sprite[i][j].setScale(0.5,0.5);
