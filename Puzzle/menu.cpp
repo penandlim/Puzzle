@@ -5,7 +5,6 @@ int colorchange(int color);
 int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & bot, sf::Texture & screenshot);
 
 sf::Music intro_piano;
-sf::Music intro_8bit;
 bool applaunch = true;
 
 int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
@@ -53,20 +52,11 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		backgroundVertex[2].color = sf::Color(255, 185, 231, 255);
 		backgroundVertex[3].color = sf::Color(93, 134, 172, 255);
 
-		intro_8bit.openFromFile("Resources/musics/intro_8bit.ogg");
 		intro_piano.openFromFile("Resources/musics/intro_piano.ogg");
 		intro_piano.setLoop(true);
-		intro_8bit.setVolume(100);
-		intro_8bit.play();
 
 		if (premenu(Window, top, bot, screenshot) == 1)
 			return EXIT;
-	}
-	else
-	{
-		if(bgmisplaying == false)
-			intro_piano.play();
-		intro_8bit.stop();
 	}
 	applaunch = false;
 
@@ -110,21 +100,46 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 
 	int loop_colorchange = 0, loop_cut = 0, loop_colorchange_max = 5, loop_animation = 0, animationState = 99, selection = SINGLE;
 
-	sf::Texture mapeditTexture;
+	sf::Texture mapeditTexture, globeTexture;
 	mapeditTexture.loadFromFile("Resources/images/mapedit.png");
-	sf::Sprite mapeditSprite;
+	mapeditTexture.setSmooth(1);
+	globeTexture.loadFromFile("Resources/images/globe.png");
+	globeTexture.setSmooth(1);
+	sf::Sprite mapeditSprite, globeSprite;
+	globeSprite.setTexture(globeTexture);
+	globeSprite.setColor(sf::Color(255,255,255,0));
+	globeSprite.setPosition(640 - 250, 360 - 250);
 	mapeditSprite.setTexture(mapeditTexture);
 	mapeditSprite.setColor(sf::Color(255,255,255,0));
+	float mapeditSpriteOpacity = 0;
+
+	sf::Texture leftarrowTexture, rightarrowTexture;
+	sf::Sprite leftarrowSprite, rightarrowSprite;
+	leftarrowTexture.loadFromFile("Resources/images/leftarrow.png");
+	leftarrowTexture.setSmooth(1);
+	rightarrowTexture.loadFromFile("Resources/images/rightarrow.png");
+	rightarrowTexture.setSmooth(1);
+	leftarrowSprite.setTexture(leftarrowTexture);
+	leftarrowSprite.setColor(sf::Color(255,255,255,0));
+	rightarrowSprite.setTexture(rightarrowTexture);
+	rightarrowSprite.setColor(sf::Color(255,255,255,0));
 
 	sf::Font menuFont;
 	menuFont.loadFromFile("Resources/fonts/blocks.otf");
 
 	sf::Text menuTitle;
-	menuTitle.setString("Puzzle Frenzy");
+	menuTitle.setString("Puzzle Frenzy Redux");
 	menuTitle.setFont(menuFont);
 	menuTitle.setCharacterSize(250);
 	menuTitle.setScale(0.01,0.01);
 	menuTitle.setPosition((1280 - menuTitle.getGlobalBounds().width) / 2, 360 - menuTitle.getGlobalBounds().height);
+
+	sf::Texture helpTexture;
+	helpTexture.loadFromFile("Resources/images/help.png");
+	sf::Sprite helpSprite;
+	helpSprite.setTexture(helpTexture);
+	helpSprite.setColor(sf::Color(255,255,255,95));
+	helpSprite.setPosition(1280-50, 0);
 
 	sf::Text menuOption[4];
 	menuOption[0].setString("Single-Play");
@@ -140,6 +155,13 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		menuOption[i].setColor(sf::Color::Transparent);
 	}
 
+	sf::RectangleShape blackscreen;
+	blackscreen.setSize(sf::Vector2f(1280,720));
+	blackscreen.setFillColor(sf::Color(0,0,0,0));
+
+	sf::Mouse mouse;
+	sf::Vector2f mouseposition;
+
 	while(Window.isOpen())
 	{
 		sf::Event event;
@@ -153,6 +175,9 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 				switch (event.key.code)
 				{
 					case sf::Keyboard::Space:
+						return selection;
+						break;
+					case sf::Keyboard::Return:
 						return selection;
 						break;
 					case sf::Keyboard::Left:
@@ -184,9 +209,9 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 			}
 			loop_colorchange = 0;
 		}
-		if (menuTitle.getScale().x < 1)
+		if (menuTitle.getScale().x < 0.7)
 		{
-			if(1 - menuTitle.getScale().x < 0.2)
+			if(menuTitle.getScale().x > 0.5)
 			{
 				menuTitle.setScale(menuTitle.getScale().x + 0.003,menuTitle.getScale().y + 0.003);
 				menuTitle.setPosition((1280 - menuTitle.getGlobalBounds().width) / 2, 360 - menuTitle.getGlobalBounds().height);
@@ -219,23 +244,57 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 				top[i].position.y +=0.72 * loop_cut;
 			}
 		}
+		if (selection == SINGLE)
+		{
+			if(leftarrowSprite.getColor().a > 0)
+				leftarrowSprite.setColor(sf::Color(255,255,255,leftarrowSprite.getColor().a -5));
+			if(globeSprite.getColor().a > 0)
+				globeSprite.setColor(sf::Color(255,255,255,globeSprite.getColor().a -3));
+		}
+		else if (selection == MULTI)
+		{
+			if(leftarrowSprite.getColor().a < 255)
+				leftarrowSprite.setColor(sf::Color(255,255,255,leftarrowSprite.getColor().a +5));
+			if(globeSprite.getColor().a < 150)
+				globeSprite.setColor(sf::Color(255,255,255,globeSprite.getColor().a +3));
+		}
+		else if (selection == EDIT)
+		{
+			if(rightarrowSprite.getColor().a < 255)
+				rightarrowSprite.setColor(sf::Color(255,255,255,rightarrowSprite.getColor().a +5));
+			if(globeSprite.getColor().a > 0)
+				globeSprite.setColor(sf::Color(255,255,255,globeSprite.getColor().a -3));
+			if(blackscreen.getFillColor().a > 0)
+				blackscreen.setFillColor(sf::Color(0,0,0,blackscreen.getFillColor().a - 5));
+		}
+		else if (selection == EXIT)
+		{
+			if(rightarrowSprite.getColor().a > 0)
+				rightarrowSprite.setColor(sf::Color(255,255,255,rightarrowSprite.getColor().a - 5));
+			if(blackscreen.getFillColor().a < 255)
+				blackscreen.setFillColor(sf::Color(0,0,0,blackscreen.getFillColor().a + 5));
+		}
 
+		
 		if (selection == EDIT)			// if map editor is selected
 		{
-			if (mapeditSprite.getColor().a < 255)
-			mapeditSprite.setColor(sf::Color(255,255,255, mapeditSprite.getColor().a + 5));
+			if (mapeditSpriteOpacity < 255)
+			{
+				mapeditSpriteOpacity += 4.25;
+				mapeditSprite.setColor(sf::Color(255,255,255, mapeditSpriteOpacity));
+			}
 		}
 		else
 		{
-			if (mapeditSprite.getColor().a > 0)
-			mapeditSprite.setColor(sf::Color(255,255,255, mapeditSprite.getColor().a - 5));
+			if (mapeditSpriteOpacity > 0)
+			{
+				mapeditSpriteOpacity -= 4.25;
+				mapeditSprite.setColor(sf::Color(255,255,255, mapeditSpriteOpacity));
+			}
 		}
 
-		if(intro_8bit.getVolume() > 0)
-		{
+		if(intro_piano.getVolume() < 100)
 			intro_piano.setVolume( intro_piano.getVolume() + 0.5);
-			intro_8bit.setVolume( intro_8bit.getVolume() - 0.5);
-		}
 
 		if(animationState == LEFT)
 		{
@@ -267,22 +326,44 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 			}
 		}
 
+		mouseposition.x = (float) mouse.getPosition(Window).x * 1280 / Window.getSize().x;
+		mouseposition.y = (float) mouse.getPosition(Window).y * 720 / Window.getSize().y;
+
+		if (mouseposition.x > 1230 && mouseposition.y < 50)
+		{
+			if (helpSprite.getColor().a < 255)
+				helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a + 10));
+		}
+		else if (helpSprite.getColor().a > 95)
+				helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a - 10));
+
 		//	Window section.
 		Window.clear();
 		Window.draw(backgroundVertex);
 		Window.draw(mapeditSprite);
+		Window.draw(globeSprite);
+		Window.draw(blackscreen);
 		Window.draw(menuTitle);
-		if(menuTitle.getScale().x >= 1)
+		if(menuTitle.getScale().x >= 0.7 && menuOption[0].getColor().a < 255)
 		{
 			for (int i = 0; i < 4; i++)
 			{
 				if (menuOption[i].getColor().a < 255)
 					menuOption[i].setColor( sf::Color(255,255,255, menuOption[i].getColor().a + 5));
-				Window.draw(menuOption[i]);
 			}
-			if (menuOption[0].getColor().a == 250)
+			if(rightarrowSprite.getColor().a < 255)
+				rightarrowSprite.setColor(sf::Color(255,255,255, rightarrowSprite.getColor().a + 5));
+
+			if (menuOption[0].getColor().a == 255)
 				animationState = STILL;
 		}
+		for (int i = 0; i < 4; i++)
+		{
+			Window.draw(menuOption[i]);
+		}
+		Window.draw(leftarrowSprite);
+		Window.draw(rightarrowSprite);
+		Window.draw(helpSprite);
 		if (loop_cut < 300)
 			Window.draw(bot, &screenshot);
 		Window.draw(top, &screenshot);
@@ -348,6 +429,7 @@ int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & 
 
 	sf::Texture slashTexture;
 	slashTexture.loadFromFile("Resources/images/slash.png");
+	slashTexture.setSmooth(1);
 
 	sf::Sprite slashSprite;
 	slashSprite.setTexture(slashTexture);
@@ -366,7 +448,6 @@ int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & 
 				{
 					case sf::Keyboard::Space:
 						draw_crash = true;
-						intro_piano.setPlayingOffset(intro_8bit.getPlayingOffset());
 						intro_piano.setVolume(0);
 						intro_piano.play();
 						crashTimer.restart();
@@ -380,7 +461,6 @@ int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & 
 		if(draw_crash)
 		{
 			intro_piano.setVolume( intro_piano.getVolume() + 0.5);
-			intro_8bit.setVolume( intro_8bit.getVolume() - 0.5);
 			if(whiteout.getFillColor().a != 0)
 				whiteout.setFillColor( sf::Color(255,255,255, whiteout.getFillColor().a - 5));
 			if(crashTimer.getElapsedTime().asMilliseconds() > 1000)
@@ -401,7 +481,7 @@ int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & 
 		Window.display();
 	}
 
-	screenshot.create(1280,720);
+	screenshot.create(Window.getSize().x,Window.getSize().y);
 	screenshot.update(Window);
 
 	//for(int i = 0; i < 72; i++)
@@ -427,16 +507,16 @@ int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & 
 	bot[2].position = sf::Vector2f(0,720);
 
 	bot[0].texCoords = sf::Vector2f(0,0);
-	bot[1].texCoords = sf::Vector2f(1280,720);
-	bot[2].texCoords = sf::Vector2f(0,720);
+	bot[1].texCoords = sf::Vector2f(Window.getSize().x,Window.getSize().y);
+	bot[2].texCoords = sf::Vector2f(0,Window.getSize().y);
 
 	top[0].position = sf::Vector2f(0,0);
 	top[1].position = sf::Vector2f(1280,720);
 	top[2].position = sf::Vector2f(1280,0);
 
 	top[0].texCoords = sf::Vector2f(0,0);
-	top[1].texCoords = sf::Vector2f(1280,720);
-	top[2].texCoords = sf::Vector2f(1280,0);
+	top[1].texCoords = sf::Vector2f(Window.getSize().x,Window.getSize().y);
+	top[2].texCoords = sf::Vector2f(Window.getSize().x,0);
 	
 	return 0;
 }

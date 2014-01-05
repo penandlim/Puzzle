@@ -4,27 +4,31 @@
 #include "mapeditor.h"
 #include<SFML/Graphics.hpp>
 #include<SFML/Audio.hpp>
-#include<iostream>
-#include<fstream>
-#include<sstream>
 
 
 int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & levelnumber);
 int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished, int levelnumber);
 int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & levelnumber);
 
-sf::Music bgm;
 sf::Font blockFont;
 sf::Font levelFont;
+sf::View view;
 
-bool bgmisplaying;
+bool windowhasfocus = true;
 
 int main()
 {
 	sf::ContextSettings settings;
-	settings.antialiasingLevel = 4;
+	settings.antialiasingLevel = 8;
 
-	sf::RenderWindow Window(sf::VideoMode(1280, 720, 32),  "Color Puzzle" , sf::Style::Titlebar , settings);		// morski is a fagloard loves big dicks
+	sf::VideoMode desktopVM = sf::VideoMode::getDesktopMode();
+	//view.reset(sf::FloatRect(0,0,1280,720));
+	
+
+	sf::RenderWindow Window(sf::VideoMode(desktopVM.width, desktopVM.height, 32),  "Color Puzzle" , sf::Style::Fullscreen , settings);
+	view.reset(sf::FloatRect(0,0,1280,720));
+	view.setViewport(sf::FloatRect(0,0,1,1));
+	Window.setView(view);
 	Window.setMouseCursorVisible(true);
 	Window.setVerticalSyncEnabled(true);
 	Window.setKeyRepeatEnabled(true);
@@ -41,10 +45,8 @@ int main()
 		case 0:
 			while (selectStage(Window,backgroundVertex, levelnumber) == 0)
 			{
-				intro_piano.stop();
 				level(Window, backgroundVertex, levelnumber);
 			}
-			bgmisplaying = false;
 			break;
 		case 1:
 
@@ -66,11 +68,6 @@ int main()
 int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & levelnumber)
 {
 	//	Play non 8bit version when returned to selecting stage from levels
-	if (intro_piano.getStatus() == sf::Music::Stopped)
-	{
-		intro_piano.setPlayingOffset(sf::seconds(4));
-		intro_piano.play();
-	}
 
 	int loop_colorchange = 0;
 
@@ -80,6 +77,8 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 	sf::Sprite icon_sprite[5][10];
 	sf::Text icon_level[5][10];
 	sf::Font icon_font;
+	sf::Mouse mouse;
+	sf::Vector2f mouseposition;
 	icon_font.loadFromFile("Resources/fonts/blocks.otf");
 
 	for (int i = 0; i < 5; i++)
@@ -87,8 +86,6 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 		for (int j = 0; j < 10; j++)
 		{
 			std::string levelstring = std::to_string(i*10 + j + 1);
-
-			
 			icon_sprite[i][j].setTexture(icons);
 			icon_sprite[i][j].setTextureRect( sf::IntRect(50*i + 51, 0, 48, 50));
 			icon_sprite[i][j].setOrigin(icon_sprite[i][j].getGlobalBounds().width / 2, icon_sprite[i][j].getGlobalBounds().height / 2);
@@ -99,9 +96,16 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 			icon_level[i][j].setCharacterSize(100);
 			icon_level[i][j].setOrigin(icon_level[i][j].getGlobalBounds().width / 2, icon_level[i][j].getGlobalBounds().height / 2 + 20);
 			icon_level[i][j].setScale(0.15,0.15);
-			icon_level[i][j].setPosition(icon_sprite[i][j].getPosition().x, icon_sprite[i][j].getPosition().y);
+			icon_level[i][j].setPosition(icon_sprite[i][j].getPosition().x - 3, icon_sprite[i][j].getPosition().y);
 		}
 	}
+
+	sf::Texture helpTexture;
+	helpTexture.loadFromFile("Resources/images/help.png");
+	sf::Sprite helpSprite;
+	helpSprite.setTexture(helpTexture);
+	helpSprite.setColor(sf::Color(255,255,255,95));
+	helpSprite.setPosition(1280-50, 0);
 
 	while(Window.isOpen())
 	{
@@ -115,10 +119,13 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 				switch (event.key.code)
 				{
 				case sf::Keyboard::Escape:
-					intro_piano.pause();
 					return 1;
 				}
 			}
+			if (event.type == sf::Event::LostFocus)
+				windowhasfocus = false;
+			else if (event.type == sf::Event::GainedFocus)
+				windowhasfocus = true;
 		}
 
 		if (icon_sprite[4][9].getScale().x < 1.5)
@@ -153,7 +160,19 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 			loop_colorchange = 0;
 		}
 
-		if(sf::Mouse::isButtonPressed(sf::Mouse::Left))			//Checks if mouse left button is clicked and see where it is
+		mouseposition.x = (float) mouse.getPosition(Window).x * 1280 / Window.getSize().x;
+		mouseposition.y = (float) mouse.getPosition(Window).y * 720 / Window.getSize().y;
+
+		if (mouseposition.x > 1230 && mouseposition.y < 50)
+		{
+			if (helpSprite.getColor().a < 255)
+			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a + 10));
+		}
+		else if (helpSprite.getColor().a > 95)
+			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a - 10));
+
+
+		if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && windowhasfocus == true)			//Checks if mouse left button is clicked and see where it is
 		{
 			levelnumber = 0;
 			bool isMouseOnTileX = false;
@@ -161,7 +180,7 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 
 			for (int j = 0; j < 10; j++)
 			{
-				if (sf::Mouse::getPosition(Window).x < 40 + 75 + 125 * j && sf::Mouse::getPosition(Window).x > 40 + 125 * j)
+				if (mouseposition.x < 40 + 75 + 125 * j && mouseposition.x > 40 + 125 * j)
 				{
 					isMouseOnTileX = true;
 					levelnumber = j + 1;
@@ -170,7 +189,7 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 
 			for (int i = 0; i < 5; i++)
 			{
-				if (sf::Mouse::getPosition(Window).y < 40 + 75 + 128 * i && sf::Mouse::getPosition(Window).y > 40 + 128 * i)
+				if (mouseposition.y < 40 + 75 + 128 * i && mouseposition.y > 40 + 128 * i)
 				{
 					isMouseOnTileY = true;
 					levelnumber += i * 10;
@@ -192,6 +211,7 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 				Window.draw(icon_level[i][j]);
 			}
 		}
+		Window.draw(helpSprite);
 		Window.display();
 	}
 	return 0;
@@ -201,7 +221,7 @@ int selectStage(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, i
 int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & levelnumber)
 {
 	enum Direction {STILL, LEFT, RIGHT, UP, DOWN, ANIMATION}; 
-	sf::Vector2f boxPosition(40 + 3, 40 + 3), futureboxPosition = boxPosition;
+	sf::Vector2f futureboxPosition(43,43);
 	sf::Vector2i cursorposition(0,0);
 	int movement = STILL, movecount = 0;
 
@@ -210,7 +230,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 	selectingbox.setSize(sf::Vector2f(75 - 2 * selectingbox.getOutlineThickness(), 150 -  2 *selectingbox.getOutlineThickness()));
 	selectingbox.setFillColor(sf::Color::Transparent);
 	selectingbox.setOutlineColor(sf::Color::White);
-	selectingbox.setPosition(boxPosition);
+	selectingbox.setPosition(43,43);
 	 
 	pausemenu.setOutlineThickness (5);
 	pausemenu.setSize(sf::Vector2f(400,300));
@@ -223,17 +243,20 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 	sf::Text displaylevel;
 	displaylevel.setFont(levelFont);
 
-
-	bgm.setLoop(true);
-	bgm.openFromFile("Resources/musics/Music A1.ogg");
-	bgm.play();
+	sf::Texture helpTexture;
+	helpTexture.loadFromFile("Resources/images/help.png");
+	sf::Sprite helpSprite;
+	helpSprite.setTexture(helpTexture);
+	helpSprite.setColor(sf::Color(255,255,255,95));
+	helpSprite.setPosition(1280-50, 0);
 
 	sf::Texture backgroundTexture, pauseScreenTexture;
 	sf::Sprite backgroundSprite, pauseScreenSprite;
 
-	backgroundTexture.loadFromFile("Resources/images/background.png");
+	backgroundTexture.loadFromFile("Resources/images/mapedit_background.png");
+	backgroundTexture.setSmooth(1);
 	backgroundSprite.setTexture(backgroundTexture);
-	backgroundSprite.setPosition(0,0);
+	backgroundSprite.setPosition(40,40);
 	backgroundSprite.setColor(sf::Color(255,255,255,100));
 
 	int maptile2d[8][16];					// 2d array maptiles. read from resources/maps/*.txt
@@ -268,6 +291,9 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 	map.setPosition(40,40);
 	map.setScale(1.5,1.5);
 
+	sf::Mouse mouse;
+	sf::Vector2f mouseposition;
+
 	while(Window.isOpen())
 	{
 		sf::Event event;
@@ -275,12 +301,151 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
         {
             if (event.type == sf::Event::Closed)
                 Window.close();
-			if (event.type == sf::Event::KeyPressed && movement==STILL)		// Key responses only work when there is no animation
+			if (event.type == sf::Event::LostFocus)
+				windowhasfocus = false;
+			else if (event.type == sf::Event::GainedFocus)
+				windowhasfocus = true;
+			if (event.type == sf::Event::MouseButtonPressed)
+			{
+				if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+				{
+					if(maptile2d[cursorposition.y][cursorposition.x] == maptile2d[cursorposition.y +1][cursorposition.x])
+							std::cout<< "Same box\n";
+						else
+						{
+							movement = ANIMATION;
+							movecount++;
+							std::cout << movecount << " tries\n";
+							int loopnumber = 0;
+
+							while (!map.swap(cursorposition, maptile2d, loopnumber))
+							{
+								Window.clear();
+								Window.draw(backgroundVertex);
+								Window.draw(backgroundSprite);
+								Window.draw(map);
+								Window.draw(displaylevel);
+								Window.draw(selectingbox);
+								Window.display();
+							}
+							Window.clear();
+							Window.draw(backgroundVertex);
+							Window.draw(backgroundSprite);
+							Window.draw(map);
+							Window.draw(displaylevel);
+							Window.draw(selectingbox);
+							Window.display();
+
+							while (map.slide_data(maptile2d, maptile2d_copy, slide_position_x))
+							{
+								// DEBUG slide_position_x
+								/*for (int i = 0; i < 8; i++)
+								{
+									for (int j = 0; j < 16; j++)
+									{
+										std::cout <<slide_position_x[i][j] << " ";
+									}
+									std::cout << std::endl;
+								}*/
+
+								loopnumber = 0;
+								while (map.slide_animation(slide_position_x, loopnumber))
+								{
+									Window.clear();
+									Window.draw(backgroundVertex);
+									Window.draw(backgroundSprite);
+									Window.draw(map);
+									Window.draw(displaylevel);
+									Window.draw(selectingbox);
+									Window.display();
+									// DEBUG loopnumber
+									/*std::cout << loopnumber;*/
+								}
+								
+								
+								map.detect(maptile2d, maptile2d_copy);
+								std::cout << std::endl;
+								for (int i = 0; i < 8; i++)
+								{
+									for (int j = 0; j < 16; j++)
+									{
+										std::cout << maptile2d[i][j] << " ";
+									}
+									std::cout << std::endl;
+								}
+								for (int i = 0; i < 8; i++)
+								{
+									for (int j = 0; j < 16; j++)
+									{
+										std::cout << maptile2d_copy[i][j] << " ";
+									}
+									std::cout << std::endl;
+								}
+								std::cout << std::endl;
+								loopnumber = 0;
+								while(!map.fix(maptile2d,maptile2d_copy,sf::Vector2u(50,50), loopnumber))
+								{
+									Window.clear();
+									Window.draw(backgroundVertex);
+									Window.draw(backgroundSprite);
+									Window.draw(map);
+									Window.draw(displaylevel);
+									Window.draw(selectingbox);
+									Window.display();
+								}
+
+							}
+							if(!map.slide_data(maptile2d, maptile2d_copy, slide_position_x))
+							{
+								map.detect(maptile2d, maptile2d_copy);
+								loopnumber = 0;
+								while (!map.fix(maptile2d, maptile2d_copy, sf::Vector2u(50, 50), loopnumber))
+								{
+									Window.clear();
+									Window.draw(backgroundVertex);
+									Window.draw(backgroundSprite);
+									Window.draw(map);
+									Window.draw(displaylevel);
+									Window.draw(selectingbox);
+									Window.display();
+								}
+								while (map.slide_data(maptile2d, maptile2d_copy, slide_position_x))
+								{
+									loopnumber = 0;
+									while (map.slide_animation(slide_position_x, loopnumber))
+									{
+										Window.clear();
+										Window.draw(backgroundVertex);
+										Window.draw(backgroundSprite);
+										Window.draw(map);
+										Window.draw(displaylevel);
+										Window.draw(selectingbox);
+										Window.display();
+									}
+								
+									map.detect(maptile2d, maptile2d_copy);
+									loopnumber = 0;
+									while(!map.fix(maptile2d,maptile2d_copy,sf::Vector2u(50,50), loopnumber))
+									{
+										Window.clear();
+										Window.draw(backgroundVertex);
+										Window.draw(backgroundSprite);
+										Window.draw(map);
+										Window.draw(displaylevel);
+										Window.draw(selectingbox);
+										Window.display();
+									}
+
+								}
+							}
+						}
+				}
+			}
+			if (event.type == sf::Event::KeyPressed && movement==STILL && windowhasfocus)		// Key responses only work when there is no animation
 			{
 				switch (event.key.code)
 				{
 					case sf::Keyboard::Escape:
-						bgm.stop();
 						return 0;
 						break;
 					case sf::Keyboard::Right:
@@ -500,12 +665,39 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 								}
 							}
 						}
+
 						break;
 				}
 		    }
 		}
 
-		
+		mouseposition.x = (float) mouse.getPosition(Window).x * 1280 / Window.getSize().x;
+		mouseposition.y = (float) mouse.getPosition(Window).y * 720 / Window.getSize().y;
+
+		if (mouseposition.x > 1230 && mouseposition.y < 50)
+		{
+			if (helpSprite.getColor().a < 255)
+			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a + 10));
+		}
+		else if (helpSprite.getColor().a > 95)
+			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a - 10));
+
+		if (windowhasfocus)
+		{
+			if (mouseposition.x > 40 && mouseposition.x < 1240 && mouseposition.y > 40 && mouseposition.y < 640)
+			{
+				futureboxPosition.x = ((int) (mouseposition.x - 40)/75) * 75 + 43;
+				futureboxPosition.y = ((int) (mouseposition.y - 40)/75) * 75 + 43;
+				if(futureboxPosition.y == 568)
+					futureboxPosition.y = 493;
+				cursorposition.x = (int) (mouseposition.x - 40)/75;
+				cursorposition.y = (int) (mouseposition.y - 40)/75;
+				if(cursorposition.y > 6)
+					cursorposition.y = 6;
+			}
+		}
+
+		std::cout << cursorposition.x << " " << cursorposition.y << std::endl;
 
 		// Check if all tiles are empty and if there are no more blocks, it proceeds to next level.
 		finished = true;
@@ -527,7 +719,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 			Window.draw(map);
 			Window.draw(displaylevel);
 
-			pauseScreenTexture.create(1280,720);
+			pauseScreenTexture.create(Window.getSize().x,Window.getSize().y);
 			pauseScreenTexture.update(Window);
 			pauseScreenSprite.setTexture(pauseScreenTexture);
 			if (pauseScreen(Window, pauseScreenSprite, finished, levelnumber) == 0 )
@@ -571,7 +763,6 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 		if ( abs(futureboxPosition.x - selectingbox.getPosition().x) < 2 && abs(futureboxPosition.y - selectingbox.getPosition().y) < 2)
 		{
 			selectingbox.setPosition(futureboxPosition);
-			boxPosition = futureboxPosition;
 			movement = STILL;
 		}
 
@@ -603,6 +794,7 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 		Window.draw(map);
 		Window.draw(displaylevel);
 		Window.draw(selectingbox);
+		Window.draw(helpSprite);
 		Window.display();
 	}
 
@@ -614,6 +806,8 @@ int level(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, int & l
 
 int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished, int levelnumber)  // This function is called when stage is completed or failed
 {
+	background.setScale(sf::Vector2f((float)1280 / Window.getSize().x, (float) 720 / Window.getSize().y));
+
 	// Loads failed soundeffect
 	sf::SoundBuffer youdiedbuffer;
 	youdiedbuffer.loadFromFile("Resources/sounds/youdied.ogg");
@@ -632,9 +826,9 @@ int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished,
 	else
 	{
 		youdied.play();
-		message.setString("You Died");
+		message.setString("Try Again");
 		message.setColor(sf::Color::Red);
-		bgm.stop();
+		intro_piano.pause();
 	}
 	message.setCharacterSize(400);
 	message.setScale(0.5,0.5);
@@ -650,14 +844,17 @@ int pauseScreen(sf::RenderWindow & Window, sf::Sprite background, bool finished,
 				switch (event.key.code)
 				{
 					case sf::Keyboard::Escape:
+						if (intro_piano.getStatus() == sf::Music::Status::Paused)
+							intro_piano.play();
+						return 0;
 						break;
 					case sf::Keyboard::Right:
 						break;
 					case sf::Keyboard::Left:
 						break;
 					case sf::Keyboard::Space:	// Ends the pause screen and goes back to the game
-						if (bgm.getStatus() == sf::Music::Status::Stopped)
-							bgm.play();
+						if (intro_piano.getStatus() == sf::Music::Status::Paused)
+							intro_piano.play();
 						return 0;
 						break;
 				}
