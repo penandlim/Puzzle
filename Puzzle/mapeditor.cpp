@@ -5,7 +5,7 @@
 
 int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex);
 int testlevel(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, sf::String sentence, int maptile2d[][16], int & movecount);
-bool fileExists(sf::String sentence);
+bool fileExists(std::string str);
 
 int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 {
@@ -85,6 +85,13 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 	helpSprite.setTexture(helpTexture);
 	helpSprite.setColor(sf::Color(255,255,255,95));
 	helpSprite.setPosition(1280-50, 0);
+
+	sf::Texture needhelpTexture;
+	needhelpTexture.loadFromFile("Resources/images/help/helpmapedit.png");
+	needhelpTexture.setSmooth(1);
+	sf::Sprite needhelpSprite;
+	needhelpSprite.setTexture(needhelpTexture);
+	needhelpSprite.setColor(sf::Color::Transparent);
 	
 	sf::Texture buttonTexture;
 	buttonTexture.loadFromFile("Resources/images/button.png");
@@ -108,6 +115,7 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 
 	sf::Mouse mouse;
 	sf::Vector2f mouseposition;
+	std::string str;
 
 	bool textmode = false, mousemode = true, allowsave = false;
 
@@ -205,7 +213,6 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 				else
 					if(event.text.unicode == 8)
 						sentence.erase(sentence.getSize() - 1);
-                filenameText.setString(sentence);
 
 				if (event.text.unicode == 13)
 				{
@@ -258,6 +265,17 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 			else if (event.type == sf::Event::GainedFocus)
 				windowhasfocus = true;
 		}
+		if(textmode)
+			filenameText.setString(sentence + "|");
+		else
+		{
+			if(sentence == "")
+				filenameText.setString("file_name");
+			else
+				filenameText.setString(sentence);
+		}
+			
+
 		tileToPlaceSprite.setTextureRect(sf::IntRect(50 * whichTileToPlaceNum,0,50,50));
 
 		mouseposition.x = (float) mouse.getPosition(Window).x * 1280 / Window.getSize().x;
@@ -267,9 +285,27 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		{
 			if (helpSprite.getColor().a < 255)
 			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a + 10));
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+				needhelp = true;
 		}
-		else if (helpSprite.getColor().a > 95)
+		else 
+		{
+			if (helpSprite.getColor().a > 95)
 			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a - 10));
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+				needhelp = false;
+		}
+
+		if(needhelp)
+		{
+			if (needhelpSprite.getColor().a < 255)
+				needhelpSprite.setColor(sf::Color(255,255,255,needhelpSprite.getColor().a + 15));
+		}
+		else
+		{
+			if (needhelpSprite.getColor().a > 0)
+				needhelpSprite.setColor(sf::Color(255,255,255,needhelpSprite.getColor().a - 15));
+		}
 
 		//		Hover mouse over button 1 (test)
 		if (mouseposition.x > buttonSprite1.getPosition().x && mouseposition.x < buttonSprite1.getPosition().x + buttonSprite1.getGlobalBounds().width && mouseposition.y > buttonSprite1.getPosition().y && mouseposition.y < buttonSprite1.getPosition().y + buttonSprite1.getGlobalBounds().height)
@@ -285,10 +321,13 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 					}
 				}
 				allowsave = false;
+				movecount = 0;
 				if(testlevel(Window, backgroundVertex,sentence, custom_maptile2d_copy, movecount) == 0 && movecount !=0)
 				{
 					test.setString("Redo");
 					allowsave = true;
+					save.setString("Save");
+					save.setPosition(buttonSprite2.getPosition().x + 100 - save.getGlobalBounds().width / 2, buttonSprite2.getPosition().y + 25 - save.getGlobalBounds().height + 3);
 				}
 			}
 		}
@@ -307,12 +346,13 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 				if(mouse.isButtonPressed(sf::Mouse::Left))
 				{
 					if (sentence == "")
-						sentence = "file_name";
-					if(!fileExists(sentence))
+						str = ("Custom_Maps/file_name.txt");
+					else
+						str = "Custom_Maps/" + sentence + ".txt";
+					if(!fileExists(str))	// if file doesnt exist, save
 					{
 						std::ofstream custom_map_file;
-						std::string str(sentence);
-						custom_map_file.open ("Custom_Maps/" + str + ".txt");
+						custom_map_file.open (str);
 						for (int i = 0; i < 8; i++)
 						{
 							for (int j = 0; j < 16; j++)
@@ -328,6 +368,9 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 						custom_map_file.clear();
 						save.setString("Saved");
 						save.setPosition(buttonSprite2.getPosition().x + 100 - save.getGlobalBounds().width / 2, buttonSprite2.getPosition().y + 25 - save.getGlobalBounds().height + 3);
+						test.setString("Test");
+						movecount = 0;
+						allowsave = false;
 					}
 					else
 					{
@@ -341,7 +384,6 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		else
 		{
 			buttonSprite2.setColor(sf::Color(100,100,100,255));
-			test.setString("Test");
 		}
 
 		if (windowhasfocus && !textmode && mousemode)
@@ -387,6 +429,7 @@ int mapeditor(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		Window.draw(test);
 		Window.draw(save);
 		Window.draw(helpSprite);
+		Window.draw(needhelpSprite);
 		Window.display();
 	}
 }
@@ -850,9 +893,8 @@ int testlevel(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex, sf:
 }
 
 
-bool fileExists(sf::String sentence)
+bool fileExists(std::string str)
 {
-	std::string str(sentence);
-    std::ifstream infile("Custom_Maps/" + str + ".txt");
+    std::ifstream infile(str);
     return infile.good();
 }

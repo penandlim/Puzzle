@@ -19,6 +19,9 @@
     <ClInclude Include="puzzle.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="multi.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="puzzle.cpp">
@@ -28,6 +31,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mapeditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="multi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

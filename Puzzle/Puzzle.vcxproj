@@ -86,11 +86,13 @@
   <ItemGroup>
     <ClCompile Include="mapeditor.cpp" />
     <ClCompile Include="menu.cpp" />
+    <ClCompile Include="multi.cpp" />
     <ClCompile Include="puzzle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mapeditor.h" />
     <ClInclude Include="menu.h" />
+    <ClInclude Include="multi.h" />
     <ClInclude Include="puzzle.h" />
     <ClInclude Include="tilemap.h" />
   </ItemGroup>

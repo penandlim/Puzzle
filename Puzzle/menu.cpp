@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "puzzle.h"
+#include<iostream>
 
 int colorchange(int color);
 int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & bot, sf::Texture & screenshot);
@@ -27,6 +28,8 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 			}
 		}
 	}*/
+
+	completedgame = false;
 
 	enum animation{LEFT, RIGHT, STILL};
 	enum mode{SINGLE, MULTI, EDIT, EXIT};
@@ -98,6 +101,8 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 	//	Window.display();
 	//}
 
+	sf::Clock clickcount;
+
 	int loop_colorchange = 0, loop_cut = 0, loop_colorchange_max = 5, loop_animation = 0, animationState = 99, selection = SINGLE;
 
 	sf::Texture mapeditTexture, globeTexture;
@@ -140,6 +145,13 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 	helpSprite.setTexture(helpTexture);
 	helpSprite.setColor(sf::Color(255,255,255,95));
 	helpSprite.setPosition(1280-50, 0);
+
+	sf::Texture needhelpTexture;
+	needhelpTexture.loadFromFile("Resources/images/help/helpmain.png");
+	needhelpTexture.setSmooth(1);
+	sf::Sprite needhelpSprite;
+	needhelpSprite.setTexture(needhelpTexture);
+	needhelpSprite.setColor(sf::Color::Transparent);
 
 	sf::Text menuOption[4];
 	menuOption[0].setString("Single-Play");
@@ -196,6 +208,38 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 							selection++;
 						}
 						break;
+				}
+			}
+			if (event.type == sf::Event::MouseButtonPressed && animationState == STILL)
+			{
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+				{
+					if(mouseposition.x > 355 && mouseposition.y > 614 && mouseposition.x < 433 && mouseposition.y < 668)
+					{
+						if (selection != SINGLE)
+						{
+							animationState = LEFT;
+							loop_animation = 0;
+							selection--;
+						}
+					}
+					else if(mouseposition.x > 845 && mouseposition.y > 614 && mouseposition.x < 845 + 78 && mouseposition.y < 668)
+					{
+						if (selection != EXIT)
+						{
+							animationState = RIGHT;
+							loop_animation = 0;
+							selection++;
+						}
+					}
+					else if(mouseposition.x > 450 && mouseposition.y > 600 && mouseposition.x < 828 && mouseposition.y < 690)
+					{
+						if(clickcount.getElapsedTime().asMilliseconds() < 1000)
+						{
+							return selection;
+						}
+						clickcount.restart();
+					}
 				}
 			}
 		}
@@ -332,10 +376,28 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		if (mouseposition.x > 1230 && mouseposition.y < 50)
 		{
 			if (helpSprite.getColor().a < 255)
-				helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a + 10));
+			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a + 10));
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+				needhelp = true;
 		}
-		else if (helpSprite.getColor().a > 95)
-				helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a - 10));
+		else 
+		{
+			if (helpSprite.getColor().a > 95)
+			helpSprite.setColor(sf::Color(255,255,255,helpSprite.getColor().a - 10));
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+				needhelp = false;
+		}
+
+		if(needhelp)
+		{
+			if (needhelpSprite.getColor().a < 255)
+				needhelpSprite.setColor(sf::Color(255,255,255,needhelpSprite.getColor().a + 15));
+		}
+		else
+		{
+			if (needhelpSprite.getColor().a > 0)
+				needhelpSprite.setColor(sf::Color(255,255,255,needhelpSprite.getColor().a - 15));
+		}
 
 		//	Window section.
 		Window.clear();
@@ -363,6 +425,7 @@ int menu(sf::RenderWindow & Window, sf::VertexArray & backgroundVertex)
 		}
 		Window.draw(leftarrowSprite);
 		Window.draw(rightarrowSprite);
+		Window.draw(needhelpSprite);
 		Window.draw(helpSprite);
 		if (loop_cut < 300)
 			Window.draw(bot, &screenshot);
@@ -402,16 +465,22 @@ int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & 
 	puzzleText.setCharacterSize(150);
 	puzzleText.setPosition( (1280 - puzzleText.getGlobalBounds().width) / 2, 360 - puzzleText.getGlobalBounds().height );
 
-	sf::Font frenzyFont;
+	sf::Font frenzyFont, nameFont;
 	frenzyFont.loadFromFile("Resources/fonts/frenzy.ttf");
+	nameFont.loadFromFile("Resources/fonts/filename.otf");
 
-	sf::Text frenzyText;
+	sf::Text frenzyText, nameText;
 	frenzyText.setStyle(sf::Text::Italic);
 	frenzyText.setString("frenzy");
 	frenzyText.setColor(sf::Color(0,0,0,100));
 	frenzyText.setFont(puzzleFont);
 	frenzyText.setCharacterSize(150);
 	frenzyText.setPosition( (1280 - frenzyText.getGlobalBounds().width) / 2 - 25, 360 - frenzyText.getGlobalBounds().height + 250);
+	nameText.setString("Jongseung Lim\nJonghwa Lim\nChris Morski");
+	nameText.setColor(sf::Color(0,0,0,100));
+	nameText.setFont(nameFont);
+	nameText.setCharacterSize(20);
+	nameText.setPosition(1100,640);
 
 	sf::Text pressStart;
 	pressStart.setString("Press Space");
@@ -473,6 +542,7 @@ int premenu(sf::RenderWindow & Window, sf::VertexArray & top, sf::VertexArray & 
 		Window.draw(puzzleText);
 		Window.draw(frenzyText);
 		Window.draw(pressStart);
+		Window.draw(nameText);
 		if(draw_crash)
 		{
 			Window.draw(slashSprite);
